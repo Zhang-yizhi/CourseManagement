@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zyz.mapper.AdminMapper">
+	<sql id="field_list">a.id,a.username,a.password</sql>
+	<!-- 分页 -->
+	<select id="queryData" parameterType="Map" resultType="com.zyz.entity.Admin">
+		select
+		<include refid="field_list"/>
+			from admin a
+			order by a.id desc
+			<if test="page!=null and limit!=null">
+				limit #{page},#{limit}
+			</if>
+	</select>
+	
+	<!-- 分页获得数据总条数 -->
+	<select id="queryCount" resultType="java.lang.Integer">
+		select count(a.id) from admin a
+	</select>
+	
+	<!-- 新增管理员并返回主键 -->
+	<insert id="insertAdmin" parameterType="com.zyz.entity.Admin" useGeneratedKeys="true" keyProperty="id">
+		insert into admin(username,password)
+		values(#{username},#{password})
+	</insert>
+	
+	<!-- 查询管理员==>根据账号判重 -->
+    <select id="checkAdminByKey" parameterType="java.lang.String" resultType="java.lang.String">
+        select a.username from admin a
+        <where>
+            a.username=#{username}
+        </where>
+    </select>
+    
+    <!-- 批量删除管理员 -->
+    <delete id="batchDelAdmin" parameterType="java.lang.String">
+    	delete from admin where username in
+    	<foreach collection="list" item="item" open="(" separator="," close=")">
+    		#{item}
+    	</foreach>
+    </delete>
+    
+    <!-- 查询管理员==>根据username获取更新数据 -->
+    <select id="queryAdminByKey" parameterType="java.lang.String" resultType="com.zyz.entity.Admin">
+        select
+        <include refid="field_list" />
+        	from admin a
+        <where>
+            a.username=#{username}
+        </where>
+    </select>
+    
+    <!-- 更新管理员 -->
+    <update id="updateAdmin" parameterType="com.zyz.entity.Admin">
+        update admin set username=#{username},
+        password=#{password},
+        <where>
+            username=#{username}
+        </where>
+    </update>
+    
+    <!-- 模糊查询分页 -->
+    <select id="queryAdminBySome" resultType="com.scco.entity.Admin">
+        select * from
+        admin a
+        <where>
+            <if test="a_id!=null">
+                and a.id=concat(#{id})
+            </if>
+            <if test="username!=null">
+                and a.username like concat('%',#{username},'%')
+            </if>
+        </where>
+        <if test="page!=null and limit!=null">
+            limit #{page},#{limit}
+        </if>
+    </select>
+    
+    <!-- 模糊查询数据条数 -->
+    <select id="queryCountBySome" parameterType="java.lang.String" resultType="java.lang.Integer">
+        select count(1) from admin a
+        <where>
+            <if test="id!=null">
+                and a.id=concat(#{id})
+            </if>
+            <if test="username!=null">
+                and a.username like concat('%',#{username},'%')
+            </if>
+        </where>
+    </select>
+</mapper>
